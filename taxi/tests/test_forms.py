@@ -42,43 +42,62 @@ class FormTest(TestCase):
 
 class TestSearchForms(TestCase):
     def setUp(self):
-        self.driver = get_user_model().objects.create_user(
-            username="testdriver",
-            password="testpass123",
-            first_name="Test",
-            last_name="Driver",
-            license_number="UNI12345"
-        )
-        self.manufacturer = Manufacturer.objects.create(
-            name="Test Manufacturer",
-            country="Test Country"
-        )
-        self.car = Car.objects.create(
-            model="Test Model",
-            manufacturer=self.manufacturer
-        )
+        self.drivers = [
+            get_user_model().objects.create_user(
+                username=f"driver{i}",
+                password="testpass123",
+                first_name=f"Test{i}",
+                last_name="Driver",
+                license_number=f"UNI{i:05}"
+            ) for i in range(5)
+        ]
+
+        self.manufacturers = [
+            Manufacturer.objects.create(
+                name=f"Manufacturer {i}",
+                country="Test Country"
+            ) for i in range(5)
+        ]
+
+        self.cars = [
+            Car.objects.create(
+                model=f"Model {i}",
+                manufacturer=self.manufacturers[i % 5]
+            ) for i in range(10)
+        ]
 
     def test_driver_search_form(self):
-        form_data = {"username": "testdriver"}
+        form_data = {"username": "driver1"}
         form = DriverSearchForm(data=form_data)
         self.assertTrue(form.is_valid())
-        drivers = get_user_model().objects.filter(
-            username__icontains=form_data["username"]
-        )
-        self.assertEqual(list(drivers), [self.driver])
+
+        drivers = get_user_model().objects.filter(username__icontains=form_data["username"])
+        self.assertEqual(set(drivers), {self.drivers[1]})
+
+        for driver in self.drivers:
+            if driver != self.drivers[1]:
+                self.assertNotIn(driver, drivers)
 
     def test_car_search_form(self):
-        form_data = {"model": "Test Model"}
+        form_data = {"model": "Model 2"}
         form = CarSearchForm(data=form_data)
         self.assertTrue(form.is_valid())
+
         cars = Car.objects.filter(model__icontains=form_data["model"])
-        self.assertEqual(list(cars), [self.car])
+        self.assertEqual(set(cars), {self.cars[2]})
+
+        for car in self.cars:
+            if car != self.cars[2]:
+                self.assertNotIn(car, cars)
 
     def test_manufacturer_search_form(self):
-        form_data = {"name": "Test Manufacturer"}
+        form_data = {"name": "Manufacturer 3"}
         form = ManufacturerSearchForm(data=form_data)
         self.assertTrue(form.is_valid())
-        manufacturers = Manufacturer.objects.filter(
-            name__icontains=form_data["name"]
-        )
-        self.assertEqual(list(manufacturers), [self.manufacturer])
+
+        manufacturers = Manufacturer.objects.filter(name__icontains=form_data["name"])
+        self.assertEqual(set(manufacturers), {self.manufacturers[3]})
+
+        for manufacturer in self.manufacturers:
+            if manufacturer != self.manufacturers[3]:
+                self.assertNotIn(manufacturer, manufacturers)
