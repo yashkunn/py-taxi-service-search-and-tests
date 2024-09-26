@@ -48,7 +48,7 @@ class TestSearchForms(TestCase):
                 password="testpass123",
                 first_name=f"Test{i}",
                 last_name="Driver",
-                license_number=f"UNI{i:05}"
+                license_number=f"UNI{i : 05}"
             ) for i in range(5)
         ]
 
@@ -71,7 +71,9 @@ class TestSearchForms(TestCase):
         form = DriverSearchForm(data=form_data)
         self.assertTrue(form.is_valid())
 
-        drivers = get_user_model().objects.filter(username__icontains=form_data["username"])
+        drivers = get_user_model().objects.filter(
+            username__icontains=form_data["username"]
+        )
         self.assertEqual(set(drivers), {self.drivers[1]})
 
         for driver in self.drivers:
@@ -95,7 +97,9 @@ class TestSearchForms(TestCase):
         form = ManufacturerSearchForm(data=form_data)
         self.assertTrue(form.is_valid())
 
-        manufacturers = Manufacturer.objects.filter(name__icontains=form_data["name"])
+        manufacturers = Manufacturer.objects.filter(
+            name__icontains=form_data["name"]
+        )
         self.assertEqual(set(manufacturers), {self.manufacturers[3]})
 
         for manufacturer in self.manufacturers:
